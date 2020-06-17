@@ -1,3 +1,4 @@
+#include <algorithm>  // for sort
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -6,12 +7,12 @@
 using std::cout;
 using std::ifstream;
 using std::istringstream;
+using std::sort;
 using std::string;
 using std::vector;
 using std::abs;
 
-enum class State {kEmpty, kObstacle};
-
+enum class State {kEmpty, kObstacle, kClosed, kPath};
 
 vector<State> ParseLine(string line) {
     istringstream sline(line);
@@ -54,6 +55,10 @@ bool Compare(vector<int> neighbournode1, vector<int> neighbournode2)
   }
   else
     return false;
+// Step 6
+void CellSort(vector<vector<int>> *v) {
+  sort(v->begin(), v->end(), Compare);
+}
 }
 
 // Step 2
@@ -92,7 +97,32 @@ std::vector<vector<State>> Search( auto grid, int init[2], int goal[2])
   int h = Heurestic(x,y,goal[0],goal[1]);
   // TODO: Use AddToOpen to add the starting node to the open vector.
   AddToOpen(x, y, g, h, open, grid);
+    //Step 6
+    // TODO: while open vector is non empty {
+  while(!open.empty())
+  {
+    // TODO: Sort the open list using CellSort, and get the current node.
+    CellSort(&open);
+    vector <int> current_node = open.back();
+	open.pop_back();
+    // TODO: Get the x and y values from the current node,
+    int cx = current_node[0];
+    int cy = current_node[1];
+    // and set grid[x][y] to kPath.
+	grid[cx][cy] = State::kPath;
+    // TODO: Check if you've reached the goal. If so, return grid.
+	if(cx == goal[0] && cy == goal[1])
+    {
+      return grid;
+    }
+    
+    
+    // If we're not done, expand search to current node's neighbors. This step will be completed in a later quiz.
+    // ExpandNeighbors
   
+  //} // TODO: End while loop
+  }
+
   std::cout<<"No path found \n" ;
     return std::vector<vector<State>> {};
 }
@@ -114,11 +144,18 @@ void PrintBoard(const vector<vector<State>> board) {
   }
 }
 
-
 int main() {
-  // TODO: Declare "init" and "goal" arrays with values {0, 0} and {4, 5} respectively.
-  int init[2] = {0,0};
-  int goal[2] = {4,5};
+  int init[2]{0, 0};
+  int goal[2]{4, 5};
+  auto board = ReadBoardFile("1.board");
+  auto solution = Search(board, init, goal);
+  PrintBoard(solution);
+  // Tests
+  TestHeuristic();
+  TestAddToOpen();
+  TestCompare();
+  TestSearch();
+}
   
   // Step 1
   auto board = ReadBoardFile("1.board");
